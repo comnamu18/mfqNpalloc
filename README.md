@@ -1,5 +1,5 @@
 # mfqNpalloc
-using pintos make mfq and palloc
-build : $thread/ make
-make clean : $ make clean
+using pintos make mfq and palloc<br>
+build : $thread/ make<br>
+make clean : $ make clean<br>
 test memory allocate  : $utils/pintos -ma=0 memalloc
