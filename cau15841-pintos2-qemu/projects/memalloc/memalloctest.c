@@ -22,7 +22,7 @@ void run_memalloc_test(char **argv UNUSED)
 	memset (dynamicmem[9], 0x00, 145000);
 	free(dynamicmem[0]);
 	dynamicmem[0] = (char *) malloc (111000);
-	memset (dynamicmem[0], 0x00, 11000);
+	memset (dynamicmem[0], 0x00, 111000);
 	printf ("dump page status : \n");
 	palloc_get_status (0);
 
