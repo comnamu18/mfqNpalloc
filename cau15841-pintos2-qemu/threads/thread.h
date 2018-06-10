@@ -103,6 +103,9 @@ struct thread
 
     /* Owned by thread.c. */
     unsigned magic;                     /* Detects stack overflow. */
+
+    /* Prevent Starvation by aging */
+    int age;
   };
 
 void thread_init (void);
