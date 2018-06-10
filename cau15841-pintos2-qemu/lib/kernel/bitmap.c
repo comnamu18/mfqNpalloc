@@ -373,6 +373,14 @@ bitmap_scan (const struct bitmap *b, size_t start, size_t cnt, bool value)
         if ( returnFlag ) return n;
       }
       break;
+    case 3:
+	if (cnt <= b->bit_cnt) {
+        size_t last = b->bit_cnt - cnt;
+        size_t i;
+        for (i = start; i <= last; i=i+cnt)
+          if (!bitmap_contains (b, i, cnt, !value))
+            return i; 
+      }
     default: break;
   }
 
