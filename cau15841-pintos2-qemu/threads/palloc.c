@@ -67,11 +67,9 @@ palloc_init (size_t user_page_limit)
 
 
 /* this fuction will return size of pages for buddy system*/
-size_t count_page(size_t page_cnt){
-	int temp;
-	int count; // count k (2^k-1 < page_cnt <= 2^k)
+static size_t count_page(size_t page_cnt){
+	size_t count; // count k (2^k-1 < page_cnt <= 2^k)
 	count = 1;
-	temp=page_cnt;
 	while(1){
       		if(count<page_cnt&&page_cnt<=count*2){
 			page_cnt=count*2;
@@ -79,8 +77,6 @@ size_t count_page(size_t page_cnt){
 		}
 		count=count*2;
 	}
-	printf("original page that wanted : %d\nmodified page : %d\n",temp,page_cnt);
-
 	return page_cnt;
 }
 
