@@ -12,6 +12,7 @@
 
 static size_t startNext = 0;
 
+
 /* Element type.
 
    This must be an unsigned integer type at least as wide as int.
@@ -374,12 +375,14 @@ bitmap_scan (const struct bitmap *b, size_t start, size_t cnt, bool value)
       }
       break;
     case 3:
-	if (cnt <= b->bit_cnt) {
+	if (cnt <= b->bit_cnt) { 
         size_t last = b->bit_cnt - cnt;
-        size_t i;
-        for (i = start; i <= last; i=i+cnt)
+        size_t i; 
+        for (i = start; i <= last; i=i+cnt){
+	  // reuse of first fit algorithm. the step becames cnt (page size)
           if (!bitmap_contains (b, i, cnt, !value))
             return i; 
+	}
       }
     default: break;
   }
@@ -402,7 +405,7 @@ bitmap_scan_and_flip (struct bitmap *b, size_t start, size_t cnt, bool value)
     bitmap_set_multiple (b, idx, cnt, !value);
   return idx;
 }
-
+
 /* File input and output. */
 
 #ifdef FILESYS
