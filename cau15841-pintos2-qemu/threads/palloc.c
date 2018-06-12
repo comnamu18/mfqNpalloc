@@ -65,6 +65,22 @@ palloc_init (size_t user_page_limit)
              user_pages, "user pool");
 }
 
+
+/* this fuction will return size of pages for buddy system*/
+static size_t count_page(size_t page_cnt){
+	size_t count; // count k (2^k-1 < page_cnt <= 2^k)
+	count = 1;
+	while(1){
+      		if(count<page_cnt&&page_cnt<=count*2){
+			page_cnt=count*2;
+			break;
+		}
+		count=count*2;
+	}
+	return page_cnt;
+}
+
+
 /* Obtains and returns a group of PAGE_CNT contiguous free pages.
    If PAL_USER is set, the pages are obtained from the user pool,
    otherwise from the kernel pool.  If PAL_ZERO is set in FLAGS,
@@ -80,6 +96,12 @@ palloc_get_multiple (enum palloc_flags flags, size_t page_cnt)
 
   if (page_cnt == 0)
     return NULL;
+
+  if (pallocator==3){ // page_cnt will be modified when allocate type is buddy system
+	if(page_cnt!=1) // if page_cnt is 1, no need to modify the size of page
+		page_cnt=count_page(page_cnt);
+  }
+  
 
   lock_acquire (&pool->lock);
   page_idx = bitmap_scan_and_flip (pool->used_map, 0, page_cnt, false);
@@ -128,6 +150,12 @@ palloc_free_multiple (void *pages, size_t page_cnt)
   ASSERT (pg_ofs (pages) == 0);
   if (pages == NULL || page_cnt == 0)
     return;
+
+  if(pallocator==3){ // page_cnt will be modified if allocate type is buddy system
+	if (page_cnt!=1){ // if page_cnt is 1, no need to modify the size of page
+		page_cnt=count_page(page_cnt);
+	}
+  }
 
   if (page_from_pool (&kernel_pool, pages))
     pool = &kernel_pool;
