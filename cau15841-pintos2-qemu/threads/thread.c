@@ -126,6 +126,9 @@ void
 thread_tick (void) 
 {
   struct thread *t = thread_current ();
+  struct thread* aging_thread;
+  struct list_elem* element;
+  int j;
 
   /* Update statistics. */
   if (t == idle_thread)
@@ -138,8 +141,27 @@ thread_tick (void)
     kernel_ticks++;
 
   /* Enforce preemption. */
-  if (++thread_ticks >= TIME_SLICE)
+  if (++thread_ticks >= 6- t->priority)
     intr_yield_on_return ();
+
+  //aging all thread in ready_list[priority-1 -> 0]
+  for(j = t->priority - 1;j>=0;j--){
+    if(list_empty(&(ready_list[j]))) continue;
+    element = list_front(&ready_list[j]);
+    for(;element != NULL;element = element->next){
+      aging_thread = list_entry (element, struct thread, elem);
+      if(!is_thread(aging_thread)) break;
+      //aging
+      aging_thread->age++;
+      if(aging_thread->age >= 20){
+        aging_thread->priority++;
+        aging_thread->age = 0;
+        //move to high priority queue
+        list_remove(element);
+        list_push_back(&ready_list[aging_thread->priority], element);
+      }
+    }
+  }
 }
 
 /* Prints thread statistics. */
@@ -557,29 +579,11 @@ next_thread_to_run (void)
 {
   int i = 0;
   struct thread* next_thread;
-  struct thread* aging_thread;
-  struct list_elem* element;
   for(i=4;i>=0;i--){
     //list empty check 4->0
     if(!list_empty(&(ready_list[i]))){
-      int j;
       //get thread which will run on next tick
       next_thread = list_entry (list_pop_front (&(ready_list[i])), struct thread, elem);
-      //aging all thread in ready_list[i-1 -> 0]
-      for(j = i - 1;j>=0;j--){
-        if(list_empty(&(ready_list[j]))) continue;
-        element = list_front(&ready_list[j]);
-        for(;element != NULL;element = element->next){
-          aging_thread = list_entry (element, struct thread, elem);
-          if(!is_thread(aging_thread)) break;
-          //aging
-          aging_thread->age++;
-          if(aging_thread->age >= 20){
-            aging_thread->priority++;
-            aging_thread->age = 0;
-          }
-        }
-      }
       return next_thread;
     }
   }

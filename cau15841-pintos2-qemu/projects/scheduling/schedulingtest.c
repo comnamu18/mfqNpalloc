@@ -21,7 +21,7 @@ static void load_thread (void *__ti)
 {
 	struct thread_info *ti = (struct thread_info *) __ti;
 	int64_t sleep_time = 3 * TIMER_FREQ;
-	int64_t spin_time = sleep_time + 3 * TIMER_FREQ;
+	int64_t spin_time = sleep_time +9 * TIMER_FREQ;
 	int64_t last_time = 0;
 	struct thread* now_thread = thread_current();
 
@@ -47,8 +47,6 @@ void run_scheduling_test(char **argv UNUSED)
 	int i;
 	struct thread_info info[MAX_THREAD_CNT];
 	int64_t start_time;
-
-	thread_current()->priority = PRI_MAX;
 
 	start_time = timer_ticks();
 	for (i=0; i<MAX_THREAD_CNT; i++) {
