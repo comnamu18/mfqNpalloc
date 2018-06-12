@@ -21,7 +21,7 @@ static void load_thread (void *__ti)
 {
 	struct thread_info *ti = (struct thread_info *) __ti;
 	int64_t sleep_time = 3 * TIMER_FREQ;
-	int64_t spin_time = sleep_time +9 * TIMER_FREQ;
+	int64_t spin_time = sleep_time + 3 * TIMER_FREQ;
 	int64_t last_time = 0;
 	struct thread* now_thread = thread_current();
 
