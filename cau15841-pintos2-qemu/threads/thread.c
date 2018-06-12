@@ -57,7 +57,7 @@ static long long kernel_ticks;  /* # of timer ticks in kernel threads. */
 static long long user_ticks;    /* # of timer ticks in user programs. */
 
 /* Scheduling. */
-#define TIME_SLICE 4            /* # of timer ticks to give each thread. */
+#define TIME_SLICE 6            /* # of timer ticks to give 0 priority thread. */
 static unsigned thread_ticks;   /* # of timer ticks since last yield. */
 
 static void kernel_thread (thread_func *, void *aux);
@@ -127,7 +127,7 @@ thread_tick (void)
 {
   struct thread *t = thread_current ();
   struct thread* aging_thread;
-  struct list_elem* element;
+  struct list_elem* element, *temp;
   int j;
 
   /* Update statistics. */
@@ -140,10 +140,6 @@ thread_tick (void)
   else
     kernel_ticks++;
 
-  /* Enforce preemption. */
-  if (++thread_ticks >= 6- t->priority)
-    intr_yield_on_return ();
-
   //aging all thread in ready_list[priority-1 -> 0]
   for(j = t->priority - 1;j>=0;j--){
     if(list_empty(&(ready_list[j]))) continue;
@@ -154,14 +150,21 @@ thread_tick (void)
       //aging
       aging_thread->age++;
       if(aging_thread->age >= 20){
-        aging_thread->priority++;
+        //priority up
+        aging_thread->priority = j+1;
         aging_thread->age = 0;
         //move to high priority queue
+        temp = element->prev;
         list_remove(element);
-        list_push_back(&ready_list[aging_thread->priority], element);
+        list_push_back(&(ready_list[j+1]), element);
+        element = temp;
       }
     }
   }
+
+  /* Enforce preemption. */
+  if (++thread_ticks >= TIME_SLICE - t->priority)
+    intr_yield_on_return ();
 }
 
 /* Prints thread statistics. */
@@ -579,13 +582,12 @@ next_thread_to_run (void)
 {
   int i = 0;
   struct thread* next_thread;
-  for(i=4;i>=0;i--){
+  for(i=PRI_MAX;i>=PRI_MIN;i--){
     //list empty check 4->0
-    if(!list_empty(&(ready_list[i]))){
-      //get thread which will run on next tick
-      next_thread = list_entry (list_pop_front (&(ready_list[i])), struct thread, elem);
-      return next_thread;
-    }
+    if(list_empty(&(ready_list[i]))) continue;
+    //get thread which will run on next tick
+    next_thread = list_entry (list_pop_front (&(ready_list[i])), struct thread, elem);
+    return next_thread;
   }
   return idle_thread;
 }

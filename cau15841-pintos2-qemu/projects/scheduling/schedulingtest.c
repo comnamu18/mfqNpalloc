@@ -21,18 +21,15 @@ static void load_thread (void *__ti)
 {
 	struct thread_info *ti = (struct thread_info *) __ti;
 	int64_t sleep_time = 3 * TIMER_FREQ;
-	int64_t spin_time = sleep_time +9 * TIMER_FREQ;
+	int64_t spin_time = sleep_time + 3 * TIMER_FREQ;
 	int64_t last_time = 0;
-	struct thread* now_thread = thread_current();
 
 	timer_sleep (sleep_time - timer_elapsed (ti->start_time));
-	//reinitialize priority
-	//thread id : 0 1 2 3 4 5 6 7 8 9
-	//priority  : 4 3 2 1 0 4 3 2 1 0
+	
 	while (timer_elapsed (ti->start_time) < spin_time) {
 		int64_t cur_time = timer_ticks ();
 		if (cur_time != last_time) {
-			printf("Thread %d got tick. now priority : %d, age : %d\n", ti->id, now_thread->priority, now_thread->age);
+			printf("Thread %d got tick.\n", ti->id);
 			ti->tick_count++;
 		}
 		last_time = cur_time;
