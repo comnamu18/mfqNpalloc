@@ -304,9 +304,9 @@ bitmap_scan (const struct bitmap *b, size_t start, size_t cnt, bool value)
   ASSERT (b != NULL);
   ASSERT (start <= b->bit_cnt);
 
-  //Change this part : comnamu1
+  //Memorry Allocate Code written by KSH & YJM
   switch( pallocator ) {
-    case 0:
+    case 0: // FirstFit (Original code)
       if (cnt <= b->bit_cnt) {
         size_t last = b->bit_cnt - cnt;
         size_t i;
@@ -315,25 +315,27 @@ bitmap_scan (const struct bitmap *b, size_t start, size_t cnt, bool value)
             return i; 
       }
       break;
-    case 1:
+    case 1: // NextFit
       if ( cnt <= b->bit_cnt) {
         size_t last = b->bit_cnt - cnt;
         size_t i;
+        // Loop starts next from last allocated point
         for ( i = startNext; i <= last; i++) {
           if (!bitmap_contains (b, i, cnt, !value)) {
-            startNext = i;
+            startNext = i; // remember where it allocated
             return i;
           }
         }
+        // Check once more from 0 to last allocated point
         for ( i = 0; i <= startNext; i++){
           if (!bitmap_contains (b, i, cnt, !value)){
-            startNext = i;
+            startNext = i; // remember where it allocated
             return i;
           }
         }
       }
       break;
-    case 2: 
+    case 2: //BestFit
       if (cnt <= b->bit_cnt) {
         size_t last = b->bit_cnt - cnt;
         size_t i, j, n; // for loop, n is return value
@@ -348,6 +350,7 @@ bitmap_scan (const struct bitmap *b, size_t start, size_t cnt, bool value)
           if (!bitmap_contains (b, i, cnt, !value)) {
             // If we find enough blocks to allocate memory, flag goes on
             returnFlag = true;
+            // If after start + cnt is all 0bits, then loop doesn't needed
             if (!bitmap_contains (b, i + cnt , b->bit_cnt - cnt - i , !value)) {
               if (escapeFlag) return i;
               break; // If we find another solution before, then break
@@ -374,16 +377,17 @@ bitmap_scan (const struct bitmap *b, size_t start, size_t cnt, bool value)
         if ( returnFlag ) return n;
       }
       break;
-    case 3:
-	if (cnt <= b->bit_cnt) { 
+    case 3: // Buddy System
+	    if (cnt <= b->bit_cnt) { 
         size_t last = b->bit_cnt - cnt;
         size_t i; 
         for (i = start; i <= last; i=i+cnt){
-	  // reuse of first fit algorithm. the step becames cnt (page size)
+	        // reuse of first fit algorithm. the step becames cnt (page size)
           if (!bitmap_contains (b, i, cnt, !value))
             return i; 
-	}
+	      }
       }
+      break;
     default: break;
   }
 
